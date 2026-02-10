@@ -6,6 +6,9 @@
 #include <shared_mutex>
 #include <variant>
 #include <fstream>
+#include <string>
+#include <vector>
+#include <sstream>
 #include <memory>
 #include <map>
 #include <set>
@@ -968,33 +971,95 @@ void FindPlugins(WIN32_FIND_DATAW fd,
     SetCurrentDirectoryW(szSelfPath);
 }
 
+// Basit JSON Parse Helper'ı (Harici kütüphane gerektirmez)
+std::vector<std::wstring> ParseDllsFromConfig(const std::wstring& configPath)
+{
+    std::vector<std::wstring> dllList;
+    std::ifstream file(configPath);
+    
+    if (!file.is_open()) return dllList; // Dosya yoksa boş dön
+
+    // Dosyayı string'e oku
+    std::stringstream buffer;
+    buffer << file.rdbuf();
+    std::string content = buffer.str();
+
+    // "dlls" anahtarını bul
+    size_t keyPos = content.find("\"dlls\"");
+    if (keyPos == std::string::npos) return dllList;
+
+    // Array başlangıcını bul ([)
+    size_t arrayStart = content.find('[', keyPos);
+    if (arrayStart == std::string::npos) return dllList;
+
+    // Array bitişini bul (])
+    size_t arrayEnd = content.find(']', arrayStart);
+    if (arrayEnd == std::string::npos) return dllList;
+
+    // Sadece array'in içini al
+    std::string arrayContent = content.substr(arrayStart + 1, arrayEnd - arrayStart - 1);
+
+    // Tırnak işaretleri arasındaki stringleri topla
+    size_t quoteStart = 0;
+    while ((quoteStart = arrayContent.find('"', quoteStart)) != std::string::npos)
+    {
+        size_t quoteEnd = arrayContent.find('"', quoteStart + 1);
+        if (quoteEnd == std::string::npos) break;
+
+        std::string dllName = arrayContent.substr(quoteStart + 1, quoteEnd - quoteStart - 1);
+        
+        // Boşlukları ve gereksiz karakterleri temizle (basitçe)
+        if (!dllName.empty())
+        {
+            // std::string -> std::wstring dönüşümü (Projede tanımlı to_wstring fonksiyonunu kullanarak)
+            dllList.push_back(to_wstring(dllName));
+        }
+
+        quoteStart = quoteEnd + 1;
+    }
+
+    return dllList;
+}
+
 void LoadPlugins()
 {
-    // Mevcut çalışma dizinini hafızada tut (Oyunun bozulmaması için geri yükleyeceğiz)
+    // Mevcut çalışma dizinini hafızada tut
     auto oldDir = GetCurrentDirectoryW(); 
 
-    // Bu DLL'in (ASI Loader'ın) bulunduğu tam klasör yolunu al
+    // DLL'in (Loader'ın) bulunduğu klasörü al
     auto szSelfPath = GetModuleFileNameW(hm).substr(0, GetModuleFileNameW(hm).find_last_of(L"/\\") + 1);
     
-    // Çalışma dizinini DLL'in olduğu yere ayarla
+    // Çalışma dizinini DLL'in olduğu yere ayarla (Config ve DLL'leri buradan okuyacağız)
     SetCurrentDirectoryW(szSelfPath.c_str());
 
-    // Sadece SmokeAPI.dll'i yükle
-    // LoadLib fonksiyonu kodun ilerleyen kısımlarında LoadLibraryW sarmalayıcısı olarak tanımlı
-    HMODULE hSmoke = LoadLib(L"SmokeAPI.dll");
+    // Config dosyasından DLL listesini çek
+    // Config dosyası DLL ile aynı yerde olmalı: "proxy_config.json"
+    std::vector<std::wstring> targetDlls = ParseDllsFromConfig(szSelfPath + L"proxy_config.json");
 
-    // Opsiyonel: Eğer SmokeAPI.dll standart bir ASI eklentisiyse "InitializeASI" fonksiyonunu çağırmak gerekebilir.
-    // Sadece DllMain üzerinden çalışıyorsa aşağıdaki if bloğu gerekli değildir ama bulunması zarar vermez.
-    if (hSmoke != NULL)
+    // Eğer config dosyası yoksa veya boşsa, varsayılan olarak SmokeAPI.dll'i dene (Fallback mekanizması)
+    if (targetDlls.empty())
     {
-        auto procedure = (void(*)())GetProcAddress(hSmoke, "InitializeASI");
-        if (procedure != NULL)
+        targetDlls.push_back(L"SmokeAPI.dll");
+    }
+
+    // Listeyi döngüye al ve hepsini yükle
+    for (const auto& dllName : targetDlls)
+    {
+        // LoadLib: Projedeki LoadLibrary sarmalayıcısı
+        HMODULE hModule = LoadLib(dllName);
+
+        if (hModule != NULL)
         {
-            procedure();
+            // ASI Loader standardı: InitializeASI varsa çalıştır
+            auto procedure = (void(*)())GetProcAddress(hModule, "InitializeASI");
+            if (procedure != NULL)
+            {
+                procedure();
+            }
         }
     }
 
-    // Çalışma dizinini eski haline getir
+    // Çalışma dizinini eski haline getir (Oyunun bozulmaması için)
     SetCurrentDirectoryW(oldDir.c_str()); 
 }
 
