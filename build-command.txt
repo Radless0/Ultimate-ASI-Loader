@@ -1,0 +1,10 @@
+cd C:\Users\user\source\repos
+git clone --recursive https://github.com/Radless0/Ultimate-ASI-Loader.git
+cd Ultimate-ASI-Loader
+premake5 vs2022
+msbuild -m build/Ultimate-ASI-Loader-x64.sln /p:Configuration=Release /p:Platform=x64
+msbuild -m build/Ultimate-ASI-Loader-Win32.sln /p:Configuration=Release /p:Platform=Win32
+release.bat
+
+then copy proxy_config.json file in bin dir to next to the game's executable file
+then copy dinput8.dll file in bin dir to next to the game's executable file, you can rename dinput8.dll to whatever you want example: version.dll 
