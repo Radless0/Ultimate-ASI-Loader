@@ -970,142 +970,32 @@ void FindPlugins(WIN32_FIND_DATAW fd,
 
 void LoadPlugins()
 {
-    auto oldDir = GetCurrentDirectoryW(); // store the current directory
+    // Mevcut çalışma dizinini hafızada tut (Oyunun bozulmaması için geri yükleyeceğiz)
+    auto oldDir = GetCurrentDirectoryW(); 
 
+    // Bu DLL'in (ASI Loader'ın) bulunduğu tam klasör yolunu al
     auto szSelfPath = GetModuleFileNameW(hm).substr(0, GetModuleFileNameW(hm).find_last_of(L"/\\") + 1);
+    
+    // Çalışma dizinini DLL'in olduğu yere ayarla
     SetCurrentDirectoryW(szSelfPath.c_str());
 
-    #if !X64
-    std::fstream wndmode_ini;
-    wndmode_ini.open("wndmode.ini", std::ios_base::out | std::ios_base::in | std::ios_base::binary);
-    if (wndmode_ini.is_open())
+    // Sadece SmokeAPI.dll'i yükle
+    // LoadLib fonksiyonu kodun ilerleyen kısımlarında LoadLibraryW sarmalayıcısı olarak tanımlı
+    HMODULE hSmoke = LoadLib(L"SmokeAPI.dll");
+
+    // Opsiyonel: Eğer SmokeAPI.dll standart bir ASI eklentisiyse "InitializeASI" fonksiyonunu çağırmak gerekebilir.
+    // Sadece DllMain üzerinden çalışıyorsa aşağıdaki if bloğu gerekli değildir ama bulunması zarar vermez.
+    if (hSmoke != NULL)
     {
-        wndmode_ini.seekg(0, wndmode_ini.end);
-        bool bIsEmpty = !wndmode_ini.tellg();
-        wndmode_ini.seekg(wndmode_ini.tellg(), wndmode_ini.beg);
-
-        if (bIsEmpty)
+        auto procedure = (void(*)())GetProcAddress(hSmoke, "InitializeASI");
+        if (procedure != NULL)
         {
-            HRSRC hResource = FindResource(hm, MAKEINTRESOURCE(IDR_WNDWINI), RT_RCDATA);
-            if (hResource)
-            {
-                HGLOBAL hLoadedResource = LoadResource(hm, hResource);
-                if (hLoadedResource)
-                {
-                    LPVOID pLockedResource = LockResource(hLoadedResource);
-                    if (pLockedResource)
-                    {
-                        DWORD dwResourceSize = SizeofResource(hm, hResource);
-                        if (0 != dwResourceSize)
-                        {
-                            wndmode_ini.write((char*)pLockedResource, dwResourceSize);
-                        }
-                    }
-                }
-            }
-        }
-
-        wndmode_ini.close();
-
-        HRSRC hResource = FindResource(hm, MAKEINTRESOURCE(IDR_WNDMODE), RT_RCDATA);
-        if (hResource)
-        {
-            HGLOBAL hLoadedResource = LoadResource(hm, hResource);
-            if (hLoadedResource)
-            {
-                LPVOID pLockedResource = LockResource(hLoadedResource);
-                if (pLockedResource)
-                {
-                    DWORD dwResourceSize = SizeofResource(hm, hResource);
-                    if (0 != dwResourceSize)
-                    {
-                        ogMemModule = MemoryLoadLibrary((const void*)pLockedResource, dwResourceSize);
-                    }
-                }
-            }
-        }
-    }
-    #endif
-
-    auto nWantsToLoadPlugins = GetPrivateProfileIntW(L"globalsets", L"loadplugins", TRUE, iniPaths);
-    auto nWantsToLoadFromScriptsOnly = GetPrivateProfileIntW(L"globalsets", L"loadfromscriptsonly", FALSE, iniPaths);
-    auto nWantsToLoadRecursively = GetPrivateProfileIntW(L"globalsets", L"loadrecursively", TRUE, iniPaths);
-    auto sLoadExtraPlugins = GetPrivateProfileStringW(TEXT("globalsets"), TEXT("loadextraplugins"), TEXT("modloader\\modloader.asi"), iniPaths);
-
-    if (nWantsToLoadPlugins)
-    {
-        auto sExtraPlugins = [](const std::wstring& pathsString) -> std::vector<std::wstring>
-        {
-            std::vector<std::wstring> entries;
-            std::wstring::size_type start = 0;
-
-            auto trim = [](std::wstring str)
-            {
-                auto first = str.find_first_not_of(L" \t\r\n");
-                if (first == std::wstring::npos) return std::wstring();
-                auto last = str.find_last_not_of(L" \t\r\n");
-                return str.substr(first, last - first + 1);
-            };
-
-            auto removeQuotes = [](std::wstring str)
-            {
-                return (str.size() >= 2 && str.front() == L'"' && str.back() == L'"')
-                    ? str.substr(1, str.size() - 2) : str;
-            };
-
-            while (start < pathsString.length())
-            {
-                auto end = pathsString.find(L'|', start);
-                if (end == std::wstring::npos) end = pathsString.length();
-
-                std::wstring cleanPath = removeQuotes(trim(pathsString.substr(start, end - start)));
-                if (!cleanPath.empty() &&
-                    std::find(entries.begin(), entries.end(), cleanPath) == entries.end())
-                {
-                    entries.push_back(cleanPath);
-                }
-
-                start = end + 1;
-                while (start < pathsString.length() && ::iswspace(pathsString[start])) start++;
-            }
-
-            return entries;
-        }(sLoadExtraPlugins);
-
-        if (!sExtraPlugins.empty())
-        {
-            for (const auto& it : sExtraPlugins)
-            {
-                SetCurrentDirectoryW(szSelfPath.c_str());
-                LoadLib(it);
-                SetCurrentDirectoryW(oldDir.c_str());
-            }
-        }
-
-        WIN32_FIND_DATAW fd{};
-        if (!nWantsToLoadFromScriptsOnly)
-        {
-            SetCurrentDirectoryW(szSelfPath.c_str());
-            FindFiles(&fd);
-        }
-
-        FindPlugins(
-            fd, L"scripts", szSelfPath.c_str(), nWantsToLoadRecursively);
-
-        FindPlugins(
-            fd, L"plugins", szSelfPath.c_str(), nWantsToLoadRecursively);
-
-        // Load plugins from active directories if they exist
-        for (const auto& activeDir : OverloadFromFolder::sActiveDirectories)
-        {
-            FindPlugins(fd,
-                activeDir.c_str(),
-                szSelfPath.c_str(),
-                nWantsToLoadRecursively);
+            procedure();
         }
     }
 
-    SetCurrentDirectoryW(oldDir.c_str()); // Reset the current directory
+    // Çalışma dizinini eski haline getir
+    SetCurrentDirectoryW(oldDir.c_str()); 
 }
 
 static LONG LoadedPluginsYet = 0;
