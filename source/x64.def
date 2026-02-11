@@ -358,6 +358,36 @@ VerLanguageNameW = _VerLanguageNameW
 VerQueryValueA = _VerQueryValueA
 VerQueryValueW = _VerQueryValueW
 
+LIBRARY "userenv"
+EXPORTS
+get_reg_value = _get_reg_value
+set_env_var = _set_env_var
+set_registry_variables = _set_registry_variables
+set_wow64_environment = _set_wow64_environment
+CreateEnvironmentBlock = _CreateEnvironmentBlock
+DestroyEnvironmentBlock = _DestroyEnvironmentBlock
+ExpandEnvironmentStringsForUserA = _ExpandEnvironmentStringsForUserA
+ExpandEnvironmentStringsForUserW = _ExpandEnvironmentStringsForUserW
+GetDefaultUserProfileDirectoryA = _GetDefaultUserProfileDirectoryA
+GetDefaultUserProfileDirectoryW = _GetDefaultUserProfileDirectoryW
+GetUserProfileDirectoryA = _GetUserProfileDirectoryA
+GetUserProfileDirectoryW = _GetUserProfileDirectoryW
+GetProfilesDirectoryA = _GetProfilesDirectoryA
+GetProfilesDirectoryW = _GetProfilesDirectoryW
+GetAllUsersProfileDirectoryA = _GetAllUsersProfileDirectoryA
+GetAllUsersProfileDirectoryW = _GetAllUsersProfileDirectoryW
+GetProfileType = _GetProfileType
+LoadUserProfileA = _LoadUserProfileA
+LoadUserProfileW = _LoadUserProfileW
+RegisterGPNotification = _RegisterGPNotification
+UnregisterGPNotification = _UnregisterGPNotification
+UnloadUserProfile = _UnloadUserProfile
+EnterCriticalPolicySection = _EnterCriticalPolicySection
+LeaveCriticalPolicySection = _LeaveCriticalPolicySection
+GetAppliedGPOListW = _GetAppliedGPOListW
+USERENV_138 = _USERENV_138 @138
+CreateAppContainerProfile = _CreateAppContainerProfile
+
 LIBRARY "d3d9"
 EXPORTS
 D3DPERF_BeginEvent = _D3DPERF_BeginEvent
