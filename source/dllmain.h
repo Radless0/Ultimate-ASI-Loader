@@ -814,6 +814,71 @@ struct version_dll
     }
 } version;
 
+struct userenv_dll
+{
+    HMODULE dll;
+    FARPROC get_reg_value;
+    FARPROC set_env_var;
+    FARPROC set_registry_variables;
+    FARPROC set_wow64_environment;
+    FARPROC CreateEnvironmentBlock;
+    FARPROC DestroyEnvironmentBlock;
+    FARPROC ExpandEnvironmentStringsForUserA;
+    FARPROC ExpandEnvironmentStringsForUserW;
+    FARPROC GetDefaultUserProfileDirectoryA;
+    FARPROC GetDefaultUserProfileDirectoryW;
+    FARPROC GetUserProfileDirectoryA;
+    FARPROC GetUserProfileDirectoryW;
+    FARPROC GetProfilesDirectoryA;
+    FARPROC GetProfilesDirectoryW;
+    FARPROC GetAllUsersProfileDirectoryA;
+    FARPROC GetAllUsersProfileDirectoryW;
+    FARPROC GetProfileType;
+    FARPROC LoadUserProfileA;
+    FARPROC LoadUserProfileW;
+    FARPROC RegisterGPNotification;
+    FARPROC UnregisterGPNotification;
+    FARPROC UnloadUserProfile;
+    FARPROC EnterCriticalPolicySection;
+    FARPROC LeaveCriticalPolicySection;
+    FARPROC GetAppliedGPOListW;
+    FARPROC USERENV_138;
+    FARPROC CreateAppContainerProfile;
+
+    void LoadOriginalLibrary(HMODULE module)
+    {
+        dll = module;
+        shared.LoadOriginalLibrary(dll);
+        get_reg_value = GetProcAddress(dll, "get_reg_value");
+        set_env_var = GetProcAddress(dll, "set_env_var");
+        set_registry_variables = GetProcAddress(dll, "set_registry_variables");
+        set_wow64_environment = GetProcAddress(dll, "set_wow64_environment");
+        CreateEnvironmentBlock = GetProcAddress(dll, "CreateEnvironmentBlock");
+        DestroyEnvironmentBlock = GetProcAddress(dll, "DestroyEnvironmentBlock");
+        ExpandEnvironmentStringsForUserA = GetProcAddress(dll, "ExpandEnvironmentStringsForUserA");
+        ExpandEnvironmentStringsForUserW = GetProcAddress(dll, "ExpandEnvironmentStringsForUserW");
+        GetDefaultUserProfileDirectoryA = GetProcAddress(dll, "GetDefaultUserProfileDirectoryA");
+        GetDefaultUserProfileDirectoryW = GetProcAddress(dll, "GetDefaultUserProfileDirectoryW");
+        GetUserProfileDirectoryA = GetProcAddress(dll, "GetUserProfileDirectoryA");
+        GetUserProfileDirectoryW = GetProcAddress(dll, "GetUserProfileDirectoryW");
+        GetProfilesDirectoryA = GetProcAddress(dll, "GetProfilesDirectoryA");
+        GetProfilesDirectoryW = GetProcAddress(dll, "GetProfilesDirectoryW");
+        GetAllUsersProfileDirectoryA = GetProcAddress(dll, "GetAllUsersProfileDirectoryA");
+        GetAllUsersProfileDirectoryW = GetProcAddress(dll, "GetAllUsersProfileDirectoryW");
+        GetProfileType = GetProcAddress(dll, "GetProfileType");
+        LoadUserProfileA = GetProcAddress(dll, "LoadUserProfileA");
+        LoadUserProfileW = GetProcAddress(dll, "LoadUserProfileW");
+        RegisterGPNotification = GetProcAddress(dll, "RegisterGPNotification");
+        UnregisterGPNotification = GetProcAddress(dll, "UnregisterGPNotification");
+        UnloadUserProfile = GetProcAddress(dll, "UnloadUserProfile");
+        EnterCriticalPolicySection = GetProcAddress(dll, "EnterCriticalPolicySection");
+        LeaveCriticalPolicySection = GetProcAddress(dll, "LeaveCriticalPolicySection");
+        GetAppliedGPOListW = GetProcAddress(dll, "GetAppliedGPOListW");
+        USERENV_138 = GetProcAddress(dll, (LPCSTR)138);
+        CreateAppContainerProfile = GetProcAddress(dll, "CreateAppContainerProfile");
+    }
+} userenv;
+
 struct d3d9_dll
 {
     HMODULE dll;
@@ -3483,6 +3548,34 @@ __declspec(naked) void _VerLanguageNameW() { _asm { jmp[version.VerLanguageNameW
 __declspec(naked) void _VerQueryValueA() { _asm { jmp[version.VerQueryValueA] } }
 __declspec(naked) void _VerQueryValueW() { _asm { jmp[version.VerQueryValueW] } }
 
+__declspec(naked) void _get_reg_value() { _asm { jmp [userenv.get_reg_value] } }
+__declspec(naked) void _set_env_var() { _asm { jmp [userenv.set_env_var] } }
+__declspec(naked) void _set_registry_variables() { _asm { jmp [userenv.set_registry_variables] } }
+__declspec(naked) void _set_wow64_environment() { _asm { jmp [userenv.set_wow64_environment] } }
+__declspec(naked) void _CreateEnvironmentBlock() { _asm { jmp [userenv.CreateEnvironmentBlock] } }
+__declspec(naked) void _DestroyEnvironmentBlock() { _asm { jmp [userenv.DestroyEnvironmentBlock] } }
+__declspec(naked) void _ExpandEnvironmentStringsForUserA() { _asm { jmp [userenv.ExpandEnvironmentStringsForUserA] } }
+__declspec(naked) void _ExpandEnvironmentStringsForUserW() { _asm { jmp [userenv.ExpandEnvironmentStringsForUserW] } }
+__declspec(naked) void _GetDefaultUserProfileDirectoryA() { _asm { jmp [userenv.GetDefaultUserProfileDirectoryA] } }
+__declspec(naked) void _GetDefaultUserProfileDirectoryW() { _asm { jmp [userenv.GetDefaultUserProfileDirectoryW] } }
+__declspec(naked) void _GetUserProfileDirectoryA() { _asm { jmp [userenv.GetUserProfileDirectoryA] } }
+__declspec(naked) void _GetUserProfileDirectoryW() { _asm { jmp [userenv.GetUserProfileDirectoryW] } }
+__declspec(naked) void _GetProfilesDirectoryA() { _asm { jmp [userenv.GetProfilesDirectoryA] } }
+__declspec(naked) void _GetProfilesDirectoryW() { _asm { jmp [userenv.GetProfilesDirectoryW] } }
+__declspec(naked) void _GetAllUsersProfileDirectoryA() { _asm { jmp [userenv.GetAllUsersProfileDirectoryA] } }
+__declspec(naked) void _GetAllUsersProfileDirectoryW() { _asm { jmp [userenv.GetAllUsersProfileDirectoryW] } }
+__declspec(naked) void _GetProfileType() { _asm { jmp [userenv.GetProfileType] } }
+__declspec(naked) void _LoadUserProfileA() { _asm { jmp [userenv.LoadUserProfileA] } }
+__declspec(naked) void _LoadUserProfileW() { _asm { jmp [userenv.LoadUserProfileW] } }
+__declspec(naked) void _RegisterGPNotification() { _asm { jmp [userenv.RegisterGPNotification] } }
+__declspec(naked) void _UnregisterGPNotification() { _asm { jmp [userenv.UnregisterGPNotification] } }
+__declspec(naked) void _UnloadUserProfile() { _asm { jmp [userenv.UnloadUserProfile] } }
+__declspec(naked) void _EnterCriticalPolicySection() { _asm { jmp [userenv.EnterCriticalPolicySection] } }
+__declspec(naked) void _LeaveCriticalPolicySection() { _asm { jmp [userenv.LeaveCriticalPolicySection] } }
+__declspec(naked) void _GetAppliedGPOListW() { _asm { jmp [userenv.GetAppliedGPOListW] } }
+__declspec(naked) void _USERENV_138() { _asm { jmp [userenv.USERENV_138] } }
+__declspec(naked) void _CreateAppContainerProfile() { _asm { jmp [userenv.CreateAppContainerProfile] } }
+
 extern "C" __declspec(naked) void __stdcall _BinkAllocateFrameBuffers(int, int, int) { _asm { jmp[bink2w32.BinkAllocateFrameBuffers] } }
 extern "C" __declspec(naked) void __stdcall _BinkBufferBlit(int, int, int) { _asm { jmp[bink2w32.BinkBufferBlit] } }
 extern "C" __declspec(naked) void __stdcall _BinkBufferCheckWinPos(int, int, int) { _asm { jmp[bink2w32.BinkBufferCheckWinPos] } }
@@ -4019,6 +4112,34 @@ void _VerLanguageNameA() { version.VerLanguageNameA(); }
 void _VerLanguageNameW() { version.VerLanguageNameW(); }
 void _VerQueryValueA() { version.VerQueryValueA(); }
 void _VerQueryValueW() { version.VerQueryValueW(); }
+
+void _get_reg_value() { userenv.get_reg_value(); }
+void _set_env_var() { userenv.set_env_var(); }
+void _set_registry_variables() { userenv.set_registry_variables(); }
+void _set_wow64_environment() { userenv.set_wow64_environment(); }
+void _CreateEnvironmentBlock() { userenv.CreateEnvironmentBlock(); }
+void _DestroyEnvironmentBlock() { userenv.DestroyEnvironmentBlock(); }
+void _ExpandEnvironmentStringsForUserA() { userenv.ExpandEnvironmentStringsForUserA(); }
+void _ExpandEnvironmentStringsForUserW() { userenv.ExpandEnvironmentStringsForUserW(); }
+void _GetDefaultUserProfileDirectoryA() { userenv.GetDefaultUserProfileDirectoryA(); }
+void _GetDefaultUserProfileDirectoryW() { userenv.GetDefaultUserProfileDirectoryW(); }
+void _GetUserProfileDirectoryA() { userenv.GetUserProfileDirectoryA(); }
+void _GetUserProfileDirectoryW() { userenv.GetUserProfileDirectoryW(); }
+void _GetProfilesDirectoryA() { userenv.GetProfilesDirectoryA(); }
+void _GetProfilesDirectoryW() { userenv.GetProfilesDirectoryW(); }
+void _GetAllUsersProfileDirectoryA() { userenv.GetAllUsersProfileDirectoryA(); }
+void _GetAllUsersProfileDirectoryW() { userenv.GetAllUsersProfileDirectoryW(); }
+void _GetProfileType() { userenv.GetProfileType(); }
+void _LoadUserProfileA() { userenv.LoadUserProfileA(); }
+void _LoadUserProfileW() { userenv.LoadUserProfileW(); }
+void _RegisterGPNotification() { userenv.RegisterGPNotification(); }
+void _UnregisterGPNotification() { userenv.UnregisterGPNotification(); }
+void _UnloadUserProfile() { userenv.UnloadUserProfile(); }
+void _EnterCriticalPolicySection() { userenv.EnterCriticalPolicySection(); }
+void _LeaveCriticalPolicySection() { userenv.LeaveCriticalPolicySection(); }
+void _GetAppliedGPOListW() { userenv.GetAppliedGPOListW(); }
+void _USERENV_138() { userenv.USERENV_138(); }
+void _CreateAppContainerProfile() { userenv.CreateAppContainerProfile(); }
 
 void _D3DPERF_BeginEvent() { d3d9.D3DPERF_BeginEvent(); }
 void _D3DPERF_EndEvent() { d3d9.D3DPERF_EndEvent(); }
