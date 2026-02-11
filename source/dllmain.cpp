@@ -554,6 +554,14 @@ void LoadOriginalLibrary()
         else
             version.LoadOriginalLibrary(LoadLib(szSystemPath));
     }
+    else if (iequals(szSelfName, L"userenv.dll"))
+    {
+        szLocalPath += L"userenvHooked.dll";
+        if (std::filesystem::exists(szLocalPath))
+            userenv.LoadOriginalLibrary(LoadLib(szLocalPath));
+        else
+            userenv.LoadOriginalLibrary(LoadLib(szSystemPath));
+    }
     else if (iequals(szSelfName, L"d3d9.dll"))
     {
         szLocalPath += L"d3d9Hooked.dll";
